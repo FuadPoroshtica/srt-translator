@@ -19,7 +19,7 @@ export function parseSrt(content: string): SrtBlock[] {
 
     if (isNaN(index) || !timestamp.includes("-->") || textLines.length === 0) continue;
 
-    blocks.push({ index, timestamp, textLines });
+    blocks.push({ index, timestamp, lines: textLines });
   }
 
   return blocks;
