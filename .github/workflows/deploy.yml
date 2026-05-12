@@ -10,7 +10,7 @@ env:
 
 jobs:
   build-push:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -34,13 +34,14 @@ jobs:
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
   deploy:
-    runs-on: self-hosted
+    runs-on: runner-srt-translator
     needs: build-push
     steps:
       - uses: actions/checkout@v4
 
       - name: Deploy to k3s
         run: |
+          export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
           kubectl apply -f k8s/deployment.yaml
           kubectl rollout restart deployment/srt-translator
           kubectl rollout status deployment/srt-translator --timeout=120s
