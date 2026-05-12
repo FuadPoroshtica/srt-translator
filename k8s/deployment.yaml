@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: srt-translator
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: srt-translator
+  template:
+    metadata:
+      labels:
+        app: srt-translator
+    spec:
+      containers:
+        - name: srt-translator
+          image: ghcr.io/fuadporoshtica/srt-translator:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: srt-translator-secrets
+                  key: ANTHROPIC_API_KEY
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: srt-translator
+  namespace: default
+spec:
+  selector:
+    app: srt-translator
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: srt-translator
+  namespace: default
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  rules:
+    - host: srt.vemo.is
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: srt-translator
+                port:
+                  number: 80

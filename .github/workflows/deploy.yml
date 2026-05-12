@@ -1,0 +1,46 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [master]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/fuadporoshtica/srt-translator
+
+jobs:
+  build-push:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  deploy:
+    runs-on: self-hosted
+    needs: build-push
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to k3s
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+          kubectl rollout restart deployment/srt-translator
+          kubectl rollout status deployment/srt-translator --timeout=120s
