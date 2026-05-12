@@ -46,4 +46,4 @@ jobs:
           username: root
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            ssh proxmox "pct exec 211 -- bash -c 'KUBECONFIG=/etc/rancher/k3s/k3s.yaml /usr/local/bin/kubectl rollout restart deployment/srt-translator -n default && /usr/local/bin/kubectl rollout status deployment/srt-translator -n default --timeout=120s'"
+            ssh proxmox "pct exec 211 -- bash -c 'KUBECONFIG=/etc/rancher/k3s/k3s.yaml /usr/local/bin/kubectl rollout restart deployment/srt-translator -n default && /usr/local/bin/kubectl rollout status deployment/srt-translator -n default --timeout=300s'"
